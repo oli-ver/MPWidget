@@ -13,3 +13,6 @@ mediaportaldbhost=localhost
 
 # Your database name
 mediaportaldbname=mptvdb
+
+# Update interval (ms)
+updateinterval=60000

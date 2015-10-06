@@ -78,6 +78,14 @@ public class MPWidget extends Application {
 			AnchorPane anchorPane = (AnchorPane) loader.load();
 			viewController = loader.getController();
 
+			// Get timer config
+			String strUpdateInterval = config.getProperty("updateinterval", "20000");
+			int updateInterval = 20000;
+			try {
+				updateInterval = Integer.parseInt(strUpdateInterval);
+			} catch (Exception e) {
+				logger.warn("Error when parsing " + strUpdateInterval + " to Integer. Using default value: " + updateInterval);
+			}
 			Timer timer = new Timer();
 			timer.schedule(new TimerTask() {
 
@@ -121,7 +129,7 @@ public class MPWidget extends Application {
 					}
 
 				}
-			}, 0, 10000);
+			}, 0, updateInterval);
 
 			Scene scene = new Scene(anchorPane);
 			scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());

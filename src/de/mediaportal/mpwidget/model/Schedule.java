@@ -109,4 +109,15 @@ public class Schedule {
 	public String getEpisodeName() {
 		return episodeName;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Schedule [startTime=" + startTime + ", endTime=" + endTime + ", channelName=" + channelName + ", seriesNum=" + seriesNum
+				+ ", episodeNum=" + episodeNum + ", programName=" + programName + ", episodeName=" + episodeName + "]";
+	}
 }

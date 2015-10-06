@@ -137,8 +137,7 @@ public class ViewController {
 									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 									startDate = sdf.parse(startDateStr);
 									endDate = sdf.parse(endDateStr);
-									if (startDate.after(new Date()) && endDate.before(new Date())) {
-
+									if (startDate.before(new Date()) && endDate.after(new Date())) {
 										if (!getStyleClass().contains("priorityHigh")) {
 											getStyleClass().add("priorityHigh");
 										}
