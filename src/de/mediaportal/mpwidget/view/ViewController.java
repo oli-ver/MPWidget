@@ -5,11 +5,7 @@ package de.mediaportal.mpwidget.view;
  */
 
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -17,16 +13,17 @@ import java.util.ResourceBundle;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
+import javafx.scene.control.ResizeFeaturesBase;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.ResizeFeatures;
+import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.sun.javafx.binding.Logging;
 
 import de.mediaportal.mpwidget.model.Schedule;
 
@@ -40,6 +37,10 @@ public class ViewController {
 	@FXML
 	// URL location of the FXML file that was given to the FXMLLoader
 	private URL location;
+
+	@FXML
+	// fx:id="anchorPane"
+	private AnchorPane anchorPane;
 
 	@FXML
 	// fx:id="tcNumber"
@@ -80,7 +81,7 @@ public class ViewController {
 		assert tcEnd != null : "fx:id=\"tcEnd\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert tcEpisode != null : "fx:id=\"tcEpisode\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert tcChannel != null : "fx:id=\"tcChannel\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
-
+		
 		// Bind Colums to objects
 		tcStart.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
@@ -163,4 +164,5 @@ public class ViewController {
 	public TableView<Schedule> getTableView() {
 		return tableView;
 	}
+
 }

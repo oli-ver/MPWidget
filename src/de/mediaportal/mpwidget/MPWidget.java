@@ -12,6 +12,8 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -134,12 +136,33 @@ public class MPWidget extends Application {
 			Scene scene = new Scene(anchorPane);
 			scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());
 			stage.setScene(scene);
+			makeResizable(scene);
 			// Show View
 			stage.show();
 
 		} catch (Exception e) {
 			logger.error("When starting the application an Exception has been thrown (" + e.getMessage() + ")", e);
 		}
+	}
+
+	private void makeResizable(Scene scene) {
+		// Make tableView resizable
+		scene.heightProperty().addListener(new ChangeListener<Number>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				viewController.getTableView().setMinHeight(newValue.doubleValue());
+			}
+		});
+
+		scene.widthProperty().addListener(new ChangeListener<Number>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				viewController.getTableView().setMinWidth(newValue.doubleValue());
+			}
+		});
+
 	}
 
 	@Override
