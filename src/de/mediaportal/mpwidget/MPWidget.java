@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import javafx.application.Application;
 import javafx.collections.ObservableList;
@@ -87,7 +88,6 @@ public class MPWidget extends Application {
 						// Retrieve list item
 						TableView<Schedule> tableView = viewController.getTableView();
 						ObservableList<Schedule> list = tableView.getItems();
-						list.clear();
 
 						// Connect to Database
 						DatabaseConnection conn = new DatabaseConnection(config);
@@ -97,11 +97,16 @@ public class MPWidget extends Application {
 						ResultSet rs = stmt.executeQuery();
 
 						// Fill view with schedule items
+						Vector<Schedule> scheduleList = new Vector<>();
 						int counter = 0;
 						while (rs.next()) {
-							list.add(new Schedule(rs));
+							scheduleList.add(new Schedule(rs));
 							counter++;
 						}
+
+						// Clear list and add new items
+						list.clear();
+						list.addAll(scheduleList);
 
 						logger.info("Added " + counter + " items to the list");
 
@@ -119,7 +124,7 @@ public class MPWidget extends Application {
 			}, 0, 10000);
 
 			Scene scene = new Scene(anchorPane);
-			scene.getStylesheets().add("config/MPWidgetView.css");
+			scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());
 			stage.setScene(scene);
 			// Show View
 			stage.show();
@@ -127,5 +132,11 @@ public class MPWidget extends Application {
 		} catch (Exception e) {
 			logger.error("When starting the application an Exception has been thrown (" + e.getMessage() + ")", e);
 		}
+	}
+
+	@Override
+	public void stop() throws Exception {
+		super.stop();
+		System.exit(0);
 	}
 }
