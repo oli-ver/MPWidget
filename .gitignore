@@ -2,3 +2,9 @@
 *.class
 
 logs/log.txt
+
+*.log
+
+*.txt
+
+*.properties

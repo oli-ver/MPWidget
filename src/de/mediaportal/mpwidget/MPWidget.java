@@ -3,6 +3,7 @@
  */
 package de.mediaportal.mpwidget;
 
+import java.io.File;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -70,7 +71,7 @@ public class MPWidget extends Application {
 			config = new Config();
 
 			// Load View
-			URL url = this.getClass().getResource("/de/mediaportal/mpwidget/view/MPWidgetView.fxml");
+			URL url = new File("config/MPWidgetView.fxml").toURI().toURL();
 			logger.debug("Binding FXML at URL: " + url);
 			FXMLLoader loader = new FXMLLoader(url);
 			AnchorPane anchorPane = (AnchorPane) loader.load();
@@ -118,7 +119,7 @@ public class MPWidget extends Application {
 			}, 0, 10000);
 
 			Scene scene = new Scene(anchorPane);
-			scene.getStylesheets().add(this.getClass().getResource("/de/mediaportal/mpwidget/view/MPWidgetView.css").toExternalForm());
+			scene.getStylesheets().add("config/MPWidgetView.css");
 			stage.setScene(scene);
 			// Show View
 			stage.show();
