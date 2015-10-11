@@ -4,28 +4,36 @@ package de.mediaportal.mpwidget.view;
  * Sample Skeleton for 'MPWidgetView.fxml' Controller Class
  */
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.ResourceBundle;
-
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXML;
-import javafx.scene.control.ResizeFeaturesBase;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableView.ResizeFeatures;
-import javafx.scene.layout.AnchorPane;
-import javafx.util.Callback;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.mediaportal.mpwidget.model.Schedule;
+import de.mediaportal.mpwidget.persistence.Config;
+import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.util.Callback;
 
 public class ViewController {
 	protected Logger logger = null;
@@ -71,6 +79,18 @@ public class ViewController {
 	private TableColumn<Schedule, String> tcChannel;
 
 	@FXML
+	// fx:id="listView"
+	private ListView<String> listView;
+
+	@FXML
+	// fx:id="listViewPane"
+	private ScrollPane listViewPane;
+
+	private Config config = null;
+
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+
+	@FXML
 	// This method is called by the FXMLLoader when initialization is complete
 	void initialize() {
 		logger = LogManager.getLogger(this.getClass());
@@ -81,7 +101,10 @@ public class ViewController {
 		assert tcEnd != null : "fx:id=\"tcEnd\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert tcEpisode != null : "fx:id=\"tcEpisode\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert tcChannel != null : "fx:id=\"tcChannel\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
-		
+		assert listView != null : "fx:id=\"listView\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
+		assert listViewPane != null : "fx:id=\"listViewPane\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
+
+		logger.debug("All FXML items successfully injected. Binding Columns of tableView");
 		// Bind Colums to objects
 		tcStart.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
@@ -115,9 +138,9 @@ public class ViewController {
 
 		tcNumber.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
 			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getSeriesNum() != null
-						&& !"".equalsIgnoreCase(p.getValue().getSeriesNum()) ? p.getValue().getSeriesNum() + "x"
-						+ p.getValue().getEpisodeNum() : "");
+				return new ReadOnlyObjectWrapper<String>(
+						p.getValue().getSeriesNum() != null && !"".equalsIgnoreCase(p.getValue().getSeriesNum())
+								? p.getValue().getSeriesNum() + "x" + p.getValue().getEpisodeNum() : "");
 			}
 		});
 
@@ -156,6 +179,18 @@ public class ViewController {
 				return row;
 			}
 		});
+
+		// Add double click listener to listView
+		listView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent mouseEvent) {
+				if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
+					if (mouseEvent.getClickCount() == 2) {
+						sendWol(config.getProperty("mediaportaldbhost"), config.getProperty("mediaportaldbhostmac"));
+					}
+				}
+			}
+		});
 	}
 
 	/**
@@ -163,6 +198,90 @@ public class ViewController {
 	 */
 	public TableView<Schedule> getTableView() {
 		return tableView;
+	}
+
+	public void addConsoleLine(final String string) {
+		Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+				if (listView.getItems() != null) {
+					listView.getItems().add(sdf.format(new Date()) + " - " + string);
+					listView.getItems().sort(new Comparator<String>() {
+
+						@Override
+						public int compare(String o1, String o2) {
+							return -o1.compareTo(o2);
+						}
+					});
+				}
+			}
+		});
+
+	}
+
+	public void sendWol(String hostname, String macAddress) {
+
+		try {
+			byte[] macBytes = getMacBytes(macAddress);
+			byte[] bytes = new byte[6 + 16 * macBytes.length];
+			for (int i = 0; i < 6; i++) {
+				bytes[i] = (byte) 0xff;
+			}
+			for (int i = 6; i < bytes.length; i += macBytes.length) {
+				System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
+			}
+
+			InetAddress address = InetAddress.getByName(hostname);
+			DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, 9);
+			DatagramSocket socket = new DatagramSocket();
+			socket.send(packet);
+			socket.close();
+
+			logger.info("Wake-on-LAN packet sent.");
+			addConsoleLine("Wake-on-LAN packet sent.");
+		} catch (Exception e) {
+			logger.warn("Failed to send Wake-on-LAN packet: " + e.getMessage());
+		}
+
+	}
+
+	private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
+		byte[] bytes = new byte[6];
+		String[] hex = macStr.split("(\\:|\\-)");
+		if (hex.length != 6) {
+			throw new IllegalArgumentException("Invalid MAC address.");
+		}
+		try {
+			for (int i = 0; i < 6; i++) {
+				bytes[i] = (byte) Integer.parseInt(hex[i], 16);
+			}
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid hex digit in MAC address.");
+		}
+		return bytes;
+	}
+
+	/**
+	 * @param config
+	 *            the config to set
+	 */
+	public void setConfig(Config config) {
+		this.config = config;
+	}
+
+	/**
+	 * @return the listViewPane
+	 */
+	public ScrollPane getListViewPane() {
+		return listViewPane;
+	}
+
+	/**
+	 * @return the listView
+	 */
+	public ListView<String> getListView() {
+		return listView;
 	}
 
 }

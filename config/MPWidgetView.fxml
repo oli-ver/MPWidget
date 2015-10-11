@@ -4,8 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="281.0" prefWidth="898.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mediaportal.mpwidget.view.ViewController">
-<children><TableView fx:id="tableView" prefHeight="281.0" prefWidth="899.0" xmlns:fx="http://javafx.com/fxml">
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="347.0" prefWidth="898.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mediaportal.mpwidget.view.ViewController">
+<children><TableView fx:id="tableView" prefHeight="269.0" prefWidth="899.0" xmlns:fx="http://javafx.com/fxml">
   <columns>
     <TableColumn fx:id="tcStart" prefWidth="75.0" text="Start" />
     <TableColumn fx:id="tcEnd" prefWidth="75.0" text="Ende" />
@@ -18,4 +18,9 @@
 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
 </columnResizePolicy>
 </TableView>
+      <ScrollPane fx:id="listViewPane" layoutY="268.0">
+         <content>
+            <ListView fx:id="listView" prefHeight="79.0" prefWidth="899.0" />
+         </content>
+      </ScrollPane>
 </children></AnchorPane>

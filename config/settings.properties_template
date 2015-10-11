@@ -10,6 +10,7 @@ mediaportaldbpassword=
 
 # Your database host
 mediaportaldbhost=localhost
+mediaportaldbhostmac=00-00-00-00-00-00
 
 # Your database name
 mediaportaldbname=mptvdb

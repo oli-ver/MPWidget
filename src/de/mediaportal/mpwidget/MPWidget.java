@@ -4,9 +4,13 @@
 package de.mediaportal.mpwidget;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -50,6 +54,11 @@ public class MPWidget extends Application {
 	private ViewController viewController = null;
 
 	/**
+	 * JavaFX Stage
+	 */
+	private static Stage stage;
+
+	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -63,6 +72,7 @@ public class MPWidget extends Application {
 	 */
 	@Override
 	public void start(Stage stage) throws Exception {
+		MPWidget.stage = stage;
 		// Initialize Logger
 		System.setProperty("log4j.configurationFile", "config/log4j2.xml");
 		logger = LogManager.getLogger(this.getClass());
@@ -79,6 +89,7 @@ public class MPWidget extends Application {
 			FXMLLoader loader = new FXMLLoader(url);
 			AnchorPane anchorPane = (AnchorPane) loader.load();
 			viewController = loader.getController();
+			viewController.setConfig(config);
 
 			// Get timer config
 			String strUpdateInterval = config.getProperty("updateinterval", "20000");
@@ -99,33 +110,43 @@ public class MPWidget extends Application {
 						TableView<Schedule> tableView = viewController.getTableView();
 						ObservableList<Schedule> list = tableView.getItems();
 
-						// Connect to Database
-						DatabaseConnection conn = new DatabaseConnection(config);
-						// Get Schedule Statement
-						PreparedStatement stmt = conn.getScheduleStmt();
+						// Try to reach host, if not reachable send wol package
+						boolean tvserverDatabaseActive = hostAvailabilityCheck(config.getProperty("mediaportaldbhost"), 3306);
 
-						ResultSet rs = stmt.executeQuery();
+						if (!tvserverDatabaseActive) {
+							logger.warn("Connection to MediaPortal database not available. Send wol package in GUI to wake up the server");
+							viewController.addConsoleLine("Connection to MediaPortal database not available. "
+									+ "Send wol package in GUI to wake up the server by double clicking this log line");
+						} else {
+							// Connect to Database
+							DatabaseConnection conn = new DatabaseConnection(config);
+							// Get Schedule Statement
+							PreparedStatement stmt = conn.getScheduleStmt();
 
-						// Fill view with schedule items
-						Vector<Schedule> scheduleList = new Vector<>();
-						int counter = 0;
-						while (rs.next()) {
-							scheduleList.add(new Schedule(rs));
-							counter++;
+							ResultSet rs = stmt.executeQuery();
+
+							// Fill view with schedule items
+							Vector<Schedule> scheduleList = new Vector<>();
+							int counter = 0;
+							while (rs.next()) {
+								scheduleList.add(new Schedule(rs));
+								counter++;
+							}
+
+							// Clear list and add new items
+							list.clear();
+							list.addAll(scheduleList);
+
+							logger.info("Added " + counter + " items to the list");
+							viewController.addConsoleLine("Added " + counter + " items to the list");
+
+							rs.close();
+							stmt.close();
+							conn.close();
+							rs = null;
+							stmt = null;
+							conn = null;
 						}
-
-						// Clear list and add new items
-						list.clear();
-						list.addAll(scheduleList);
-
-						logger.info("Added " + counter + " items to the list");
-
-						rs.close();
-						stmt.close();
-						conn.close();
-						rs = null;
-						stmt = null;
-						conn = null;
 					} catch (Exception e) {
 						logger.error("When updating the table view an Exception has been thrown(" + e.getMessage() + ")", e);
 					}
@@ -137,6 +158,7 @@ public class MPWidget extends Application {
 			scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());
 			stage.setScene(scene);
 			makeResizable(scene);
+			stage.setTitle("MPWidget - Keep recordings under your control");
 			// Show View
 			stage.show();
 
@@ -145,13 +167,41 @@ public class MPWidget extends Application {
 		}
 	}
 
+	/**
+	 * Checks online availability of a remote server<br>
+	 * Source: <a href=
+	 * "http://stackoverflow.com/questions/17147352/checking-if-server-is-online-from-java-code"
+	 * >Stephen C</a>
+	 * 
+	 * @param host
+	 *            host name
+	 * @param port
+	 *            Port of the service
+	 * @return true, if connection to host and port can be established, false,
+	 *         if not
+	 */
+	public static boolean hostAvailabilityCheck(String host, int port) {
+		try (Socket s = new Socket(host, port)) {
+			return true;
+		} catch (IOException ex) {
+			/* ignore */
+		}
+		return false;
+	}
+
 	private void makeResizable(Scene scene) {
 		// Make tableView resizable
 		scene.heightProperty().addListener(new ChangeListener<Number>() {
 
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				viewController.getTableView().setMinHeight(newValue.doubleValue());
+				viewController.getTableView().setMinHeight(newValue.doubleValue() * 0.8);
+
+				viewController.getListViewPane().setMinHeight(newValue.doubleValue() * 0.2);
+				viewController.getListView().setMinHeight(newValue.doubleValue() * 0.2);
+
+				viewController.getListViewPane().setLayoutY(newValue.doubleValue() * 0.8);
+				viewController.getListView().setLayoutY(newValue.doubleValue() * 0.8);
 			}
 		});
 
@@ -160,6 +210,9 @@ public class MPWidget extends Application {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 				viewController.getTableView().setMinWidth(newValue.doubleValue());
+				viewController.getListViewPane().setMinWidth(newValue.doubleValue());
+				viewController.getListView().setMinWidth(newValue.doubleValue());
+
 			}
 		});
 
@@ -170,4 +223,5 @@ public class MPWidget extends Application {
 		super.stop();
 		System.exit(0);
 	}
+
 }
