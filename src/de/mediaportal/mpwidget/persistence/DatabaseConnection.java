@@ -59,16 +59,16 @@ public class DatabaseConnection {
 	 *             Thrown if MySQL driver is not found
 	 */
 	public DatabaseConnection(Config config) throws ClassNotFoundException, SQLException {
-		dbHost = config.getProperty(Config.FIELD_MPDB_DBHOST);
-		dbName = config.getProperty(Config.FIELD_MPDB_NAME);
+		dbHost = config.getProperty(Config.FIELD_MPDB_HOSTNAME);
+		dbName = config.getProperty(Config.FIELD_MPDB_SCHEMA);
 		mediaportaldbuser = config.getProperty(Config.FIELD_MPDB_USER);
 		mediaportaldbpassword = config.getProperty(Config.FIELD_MPDB_PASSWORD);
 
 		// This will load the MySQL driver, each DB has its own driver
 		Class.forName("com.mysql.jdbc.Driver");
 		// Setup the connection with the DB
-		connection = DriverManager.getConnection("jdbc:mysql://" + dbHost + "/" + dbName + "?" + "user=" + mediaportaldbuser + "&password="
-				+ mediaportaldbpassword);
+		connection = DriverManager.getConnection(
+				"jdbc:mysql://" + dbHost + "/" + dbName + "?" + "user=" + mediaportaldbuser + "&password=" + mediaportaldbpassword);
 
 	}
 

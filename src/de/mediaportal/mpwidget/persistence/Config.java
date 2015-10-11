@@ -15,12 +15,26 @@ import java.util.Properties;
  * @see java.util.Properties
  * 
  */
-public class Config extends Properties implements SettingsFields {
+public class Config extends Properties {
 
 	/**
 	 * default serial version UID
 	 */
 	private static final long serialVersionUID = 1L;
+
+	public static final String FILE_SETTINGS_PROPERTIES = "config" + File.separator + "settings.properties";
+
+	public static final String FIELD_MPDB_USER = "mediaportaldbuser";
+
+	public static final String FIELD_MPDB_PASSWORD = "mediaportaldbpassword";
+
+	public static final String FIELD_MPDB_HOSTNAME = "mediaportaldbhost";
+
+	public static final String FIELD_MPDB_HOST_MAC = "mediaportaldbhostmac";
+
+	public static final String FIELD_MPDB_SCHEMA = "mediaportaldbname";
+
+	public static final String FIELD_UPDATE_INTERVAL = "updateinterval";
 
 	/**
 	 * Creates an instance of the Config class by reading from

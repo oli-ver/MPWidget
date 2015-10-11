@@ -4,17 +4,24 @@
 package de.mediaportal.mpwidget;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import de.mediaportal.mpwidget.model.Schedule;
+import de.mediaportal.mpwidget.persistence.Config;
+import de.mediaportal.mpwidget.persistence.DatabaseConnection;
+import de.mediaportal.mpwidget.view.SetConfigurationViewController;
+import de.mediaportal.mpwidget.view.ViewController;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -23,15 +30,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.mediaportal.mpwidget.model.Schedule;
-import de.mediaportal.mpwidget.persistence.Config;
-import de.mediaportal.mpwidget.persistence.DatabaseConnection;
-import de.mediaportal.mpwidget.view.ViewController;
 
 /**
  * @author oliver
@@ -74,97 +74,126 @@ public class MPWidget extends Application {
 	public void start(Stage stage) throws Exception {
 		MPWidget.stage = stage;
 		// Initialize Logger
-		System.setProperty("log4j.configurationFile", "config/log4j2.xml");
+		System.setProperty("log4j.configurationFile", "config" + File.separator + "log4j2.xml");
 		logger = LogManager.getLogger(this.getClass());
 		logger.warn("****************************************");
 		logger.warn("***           MPWidget started       ***");
 		logger.warn("****************************************");
 		try {
-			// Create config instance
-			config = new Config();
+			if (!new File("config" + File.separator + "settings.properties").exists()) {
 
-			// Load View
-			URL url = new File("config/MPWidgetView.fxml").toURI().toURL();
-			logger.debug("Binding FXML at URL: " + url);
-			FXMLLoader loader = new FXMLLoader(url);
-			AnchorPane anchorPane = (AnchorPane) loader.load();
-			viewController = loader.getController();
-			viewController.setConfig(config);
+				showConfigurationDialoge(stage);
 
-			// Get timer config
-			String strUpdateInterval = config.getProperty("updateinterval", "20000");
-			int updateInterval = 20000;
-			try {
-				updateInterval = Integer.parseInt(strUpdateInterval);
-			} catch (Exception e) {
-				logger.warn("Error when parsing " + strUpdateInterval + " to Integer. Using default value: " + updateInterval);
+			} else {
+				showMainWindow(stage);
 			}
-			Timer timer = new Timer();
-			timer.schedule(new TimerTask() {
-
-				@Override
-				public void run() {
-					try {
-						logger.info("Updating tableView with current schedule...");
-						// Retrieve list item
-						TableView<Schedule> tableView = viewController.getTableView();
-						ObservableList<Schedule> list = tableView.getItems();
-
-						// Try to reach host, if not reachable send wol package
-						boolean tvserverDatabaseActive = hostAvailabilityCheck(config.getProperty("mediaportaldbhost"), 3306);
-
-						if (!tvserverDatabaseActive) {
-							logger.warn("Connection to MediaPortal database not available. Send wol package in GUI to wake up the server");
-							viewController.addConsoleLine("Connection to MediaPortal database not available. "
-									+ "Send wol package in GUI to wake up the server by double clicking this log line");
-						} else {
-							// Connect to Database
-							DatabaseConnection conn = new DatabaseConnection(config);
-							// Get Schedule Statement
-							PreparedStatement stmt = conn.getScheduleStmt();
-
-							ResultSet rs = stmt.executeQuery();
-
-							// Fill view with schedule items
-							Vector<Schedule> scheduleList = new Vector<>();
-							int counter = 0;
-							while (rs.next()) {
-								scheduleList.add(new Schedule(rs));
-								counter++;
-							}
-
-							// Clear list and add new items
-							list.clear();
-							list.addAll(scheduleList);
-
-							logger.info("Added " + counter + " items to the list");
-							viewController.addConsoleLine("Added " + counter + " items to the list");
-
-							rs.close();
-							stmt.close();
-							conn.close();
-							rs = null;
-							stmt = null;
-							conn = null;
-						}
-					} catch (Exception e) {
-						logger.error("When updating the table view an Exception has been thrown(" + e.getMessage() + ")", e);
-					}
-
-				}
-			}, 0, updateInterval);
-
-			Scene scene = new Scene(anchorPane);
-			scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());
-			stage.setScene(scene);
-			makeResizable(scene);
-			stage.setTitle("MPWidget - Keep recordings under your control");
-			// Show View
-			stage.show();
-
 		} catch (Exception e) {
 			logger.error("When starting the application an Exception has been thrown (" + e.getMessage() + ")", e);
 		}
+	}
+
+	public void showMainWindow(Stage stage) throws FileNotFoundException, IOException {
+
+		// Create config instance
+		config = new Config();
+
+		// Load View
+		URL url = new File("config" + File.separator + "MPWidgetView.fxml").toURI().toURL();
+		logger.debug("Binding FXML at URL: " + url);
+		FXMLLoader loader = new FXMLLoader(url);
+		AnchorPane anchorPane = (AnchorPane) loader.load();
+		viewController = loader.getController();
+		viewController.setConfig(config);
+
+		// Get timer config
+		String strUpdateInterval = config.getProperty("updateinterval", "20000");
+		int updateInterval = 20000;
+		try {
+			updateInterval = Integer.parseInt(strUpdateInterval);
+		} catch (Exception e) {
+			logger.warn("Error when parsing " + strUpdateInterval + " to Integer. Using default value: " + updateInterval);
+		}
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() {
+
+			@Override
+			public void run() {
+				try {
+					logger.info("Updating tableView with current schedule...");
+					// Retrieve list item
+					TableView<Schedule> tableView = viewController.getTableView();
+					ObservableList<Schedule> list = tableView.getItems();
+
+					// Try to reach host, if not reachable send wol
+					// package
+					boolean tvserverDatabaseActive = hostAvailabilityCheck(config.getProperty("mediaportaldbhost"), 3306);
+
+					if (!tvserverDatabaseActive) {
+						logger.warn("Connection to MediaPortal database not available. Send wol package in GUI to wake up the server");
+						viewController.addConsoleLine("Connection to MediaPortal database not available. "
+								+ "Send wol package in GUI to wake up the server by double clicking this log line");
+					} else {
+						// Connect to Database
+						DatabaseConnection conn = new DatabaseConnection(config);
+						// Get Schedule Statement
+						PreparedStatement stmt = conn.getScheduleStmt();
+
+						ResultSet rs = stmt.executeQuery();
+
+						// Fill view with schedule items
+						Vector<Schedule> scheduleList = new Vector<>();
+						int counter = 0;
+						while (rs.next()) {
+							scheduleList.add(new Schedule(rs));
+							counter++;
+						}
+
+						// Clear list and add new items
+						list.clear();
+						list.addAll(scheduleList);
+
+						logger.info("Added " + counter + " items to the list");
+						viewController.addConsoleLine("Added " + counter + " items to the list");
+
+						rs.close();
+						stmt.close();
+						conn.close();
+						rs = null;
+						stmt = null;
+						conn = null;
+					}
+				} catch (Exception e) {
+					logger.error("When updating the table view an Exception has been thrown(" + e.getMessage() + ")", e);
+				}
+
+			}
+		}, 0, updateInterval);
+
+		Scene scene = new Scene(anchorPane);
+		scene.getStylesheets().add(new File("config/MPWidgetView.css").toURI().toURL().toExternalForm());
+		stage.setScene(scene);
+		makeResizable(scene);
+		stage.setTitle("MPWidget - Keep recordings under your control");
+		// Show View
+		stage.show();
+	}
+
+	private void showConfigurationDialoge(Stage stage) throws IOException {
+		// Load View
+		URL url = new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog_css.fxml").toURI().toURL();
+		logger.debug("Binding FXML at URL: " + url);
+		FXMLLoader loader = new FXMLLoader(url);
+		GridPane gridPane = (GridPane) loader.load();
+		SetConfigurationViewController controller = loader.getController();
+		controller.setMainApplication(this);
+		Scene scene = new Scene(gridPane);
+		scene.getStylesheets().add(new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog.css").toURI()
+				.toURL().toExternalForm());
+		stage.setScene(scene);
+		stage.setTitle("MPWidget - Keep recordings under your control");
+		// Show View
+		stage.show();
+
 	}
 
 	/**
@@ -222,6 +251,10 @@ public class MPWidget extends Application {
 	public void stop() throws Exception {
 		super.stop();
 		System.exit(0);
+	}
+
+	public void showMainWindow() throws FileNotFoundException, IOException {
+		showMainWindow(stage);
 	}
 
 }
