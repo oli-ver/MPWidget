@@ -1,5 +1,7 @@
 package de.mediaportal.mpwidget.view;
 
+import java.io.IOException;
+
 /**
  * Sample Skeleton for 'MPWidgetView.fxml' Controller Class
  */
@@ -17,11 +19,13 @@ import java.util.ResourceBundle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.mediaportal.mpwidget.MPWidget;
 import de.mediaportal.mpwidget.model.Schedule;
 import de.mediaportal.mpwidget.persistence.Config;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -37,6 +41,8 @@ import javafx.util.Callback;
 
 public class ViewController {
 	protected Logger logger = null;
+
+	private MPWidget mpWidget = null;
 
 	@FXML
 	// ResourceBundle that was given to the FXMLLoader
@@ -220,6 +226,14 @@ public class ViewController {
 
 	}
 
+	/**
+	 * Send a wol package to the specified host and mac address
+	 * 
+	 * @param hostname
+	 *            host name or ip of the remote server
+	 * @param macAddress
+	 *            mac address of the remote server
+	 */
 	public void sendWol(String hostname, String macAddress) {
 
 		try {
@@ -241,11 +255,20 @@ public class ViewController {
 			logger.info("Wake-on-LAN packet sent.");
 			addConsoleLine("Wake-on-LAN packet sent.");
 		} catch (Exception e) {
-			logger.warn("Failed to send Wake-on-LAN packet: " + e.getMessage());
+			logger.warn("Failed to send Wake-on-LAN packet: " + e.getMessage(), e);
 		}
 
 	}
 
+	/**
+	 * Parse mac String in a byte array
+	 * 
+	 * @param macStr
+	 *            mac address String
+	 * @return mac address as byte array
+	 * @throws IllegalArgumentException
+	 *             will be thrown if the mac address has a wrong syntax
+	 */
 	private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
 		byte[] bytes = new byte[6];
 		String[] hex = macStr.split("(\\:|\\-)");
@@ -260,6 +283,22 @@ public class ViewController {
 			throw new IllegalArgumentException("Invalid hex digit in MAC address.");
 		}
 		return bytes;
+	}
+
+	@FXML
+	public void menuItemCloseAction(ActionEvent event) {
+		logger.info("User closed application by menu item");
+		System.exit(0);
+	}
+
+	@FXML
+	public void menuItemEditConfigurationAction() {
+		logger.info("Starting configuration dialog by menu item");
+		try {
+			this.mpWidget.showConfigurationDialog();
+		} catch (IOException e) {
+			logger.error("Exception thrown while starting configuration dialog: " + e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -282,6 +321,14 @@ public class ViewController {
 	 */
 	public ListView<String> getListView() {
 		return listView;
+	}
+
+	/**
+	 * @param mpWidget
+	 *            the mpWidget to set
+	 */
+	public void setMpWidget(MPWidget mpWidget) {
+		this.mpWidget = mpWidget;
 	}
 
 }

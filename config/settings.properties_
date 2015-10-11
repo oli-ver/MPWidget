@@ -1,0 +1,18 @@
+#Sat Feb 28 14:30:21 CET 2015
+
+# This application currently only supports MySQL
+
+#MediaPortal database user
+mediaportaldbuser=root
+
+# your database password
+mediaportaldbpassword=MediaPortal
+
+# Your database host
+mediaportaldbhost=tvserver
+mediaportaldbhostmac=00-21-9B-39-3A-35
+
+# Your database name
+mediaportaldbname=mptvdb
+
+updateinterval=60000

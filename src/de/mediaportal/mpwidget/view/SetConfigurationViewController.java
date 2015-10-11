@@ -1,6 +1,7 @@
 package de.mediaportal.mpwidget.view;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
@@ -89,6 +90,23 @@ public class SetConfigurationViewController {
 	// This method is called by the FXMLLoader when initialization is complete
 	void initialize() {
 		this.logger = LogManager.getLogger(this.getClass());
+		File configFile = new File(Config.FILE_SETTINGS_PROPERTIES);
+		if (configFile.exists()) {
+			Properties props = new Properties();
+			try {
+				props.load(new FileReader(configFile));
+				tfDbMacAddress.setText(props.getProperty(Config.FIELD_MPDB_HOST_MAC));
+				tfDbHost.setText(props.getProperty(Config.FIELD_MPDB_HOSTNAME));
+				tfDbPassword.setText(props.getProperty(Config.FIELD_MPDB_PASSWORD));
+				tfDbSchema.setText(props.getProperty(Config.FIELD_MPDB_SCHEMA));
+				tfDbUser.setText(props.getProperty(Config.FIELD_MPDB_USER));
+				tfUpdateInterval.setText(props.getProperty(Config.FIELD_UPDATE_INTERVAL));
+			} catch (IOException e) {
+				logger.error("Exception thrown while reading from config file: " + e.getMessage(), e);
+			}
+		} else {
+			logger.debug("No properties file found. Default values will be shown in view");
+		}
 	}
 
 	public void setMainApplication(MPWidget mpWidget) {

@@ -128,7 +128,7 @@
 			<manifest>
 				<attribute name="Implementation-Vendor" value="science-site.de" />
 				<attribute name="Implementation-Title" value="MPWidget" />
-				<attribute name="Implementation-Version" value="1.0" />
+				<attribute name="Implementation-Version" value="1.1" />
 				<attribute name="JavaFX-Feature-Proxy" value="None" />
 			</manifest>
 		</fx:jar>

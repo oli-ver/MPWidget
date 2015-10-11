@@ -82,7 +82,7 @@ public class MPWidget extends Application {
 		try {
 			if (!new File("config" + File.separator + "settings.properties").exists()) {
 
-				showConfigurationDialoge(stage);
+				showConfigurationDialog(stage);
 
 			} else {
 				showMainWindow(stage);
@@ -104,6 +104,7 @@ public class MPWidget extends Application {
 		AnchorPane anchorPane = (AnchorPane) loader.load();
 		viewController = loader.getController();
 		viewController.setConfig(config);
+		viewController.setMpWidget(this);
 
 		// Get timer config
 		String strUpdateInterval = config.getProperty("updateinterval", "20000");
@@ -178,24 +179,6 @@ public class MPWidget extends Application {
 		stage.show();
 	}
 
-	private void showConfigurationDialoge(Stage stage) throws IOException {
-		// Load View
-		URL url = new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog_css.fxml").toURI().toURL();
-		logger.debug("Binding FXML at URL: " + url);
-		FXMLLoader loader = new FXMLLoader(url);
-		GridPane gridPane = (GridPane) loader.load();
-		SetConfigurationViewController controller = loader.getController();
-		controller.setMainApplication(this);
-		Scene scene = new Scene(gridPane);
-		scene.getStylesheets().add(new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog.css").toURI()
-				.toURL().toExternalForm());
-		stage.setScene(scene);
-		stage.setTitle("MPWidget - Keep recordings under your control");
-		// Show View
-		stage.show();
-
-	}
-
 	/**
 	 * Checks online availability of a remote server<br>
 	 * Source: <a href=
@@ -253,8 +236,30 @@ public class MPWidget extends Application {
 		System.exit(0);
 	}
 
+	private void showConfigurationDialog(Stage stage) throws IOException {
+		// Load View
+		URL url = new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog_css.fxml").toURI().toURL();
+		logger.debug("Binding FXML at URL: " + url);
+		FXMLLoader loader = new FXMLLoader(url);
+		GridPane gridPane = (GridPane) loader.load();
+		SetConfigurationViewController controller = loader.getController();
+		controller.setMainApplication(this);
+		Scene scene = new Scene(gridPane);
+		scene.getStylesheets().add(new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog.css").toURI()
+				.toURL().toExternalForm());
+		stage.setScene(scene);
+		stage.setTitle("MPWidget - Keep recordings under your control");
+		// Show View
+		stage.show();
+
+	}
+
 	public void showMainWindow() throws FileNotFoundException, IOException {
 		showMainWindow(stage);
+	}
+
+	public void showConfigurationDialog() throws FileNotFoundException, IOException {
+		showConfigurationDialog(stage);
 	}
 
 }
