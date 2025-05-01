@@ -112,7 +112,8 @@ public class MPWidget extends Application {
 		try {
 			updateInterval = Integer.parseInt(strUpdateInterval);
 		} catch (Exception e) {
-			logger.warn("Error when parsing " + strUpdateInterval + " to Integer. Using default value: " + updateInterval);
+			logger.warn(
+					"Error when parsing " + strUpdateInterval + " to Integer. Using default value: " + updateInterval);
 		}
 		Timer timer = new Timer();
 		timer.schedule(new TimerTask() {
@@ -127,10 +128,12 @@ public class MPWidget extends Application {
 
 					// Try to reach host, if not reachable send wol
 					// package
-					boolean tvserverDatabaseActive = hostAvailabilityCheck(config.getProperty("mediaportaldbhost"), 3306);
+					boolean tvserverDatabaseActive = hostAvailabilityCheck(config.getProperty("mediaportaldbhost"),
+							3306);
 
 					if (!tvserverDatabaseActive) {
-						logger.warn("Connection to MediaPortal database not available. Send wol package in GUI to wake up the server");
+						logger.warn(
+								"Connection to MediaPortal database not available. Send wol package in GUI to wake up the server");
 						viewController.addConsoleLine("Connection to MediaPortal database not available. "
 								+ "Send wol package in GUI to wake up the server by double clicking this log line");
 					} else {
@@ -164,7 +167,8 @@ public class MPWidget extends Application {
 						conn = null;
 					}
 				} catch (Exception e) {
-					logger.error("When updating the table view an Exception has been thrown(" + e.getMessage() + ")", e);
+					logger.error("When updating the table view an Exception has been thrown(" + e.getMessage() + ")",
+							e);
 				}
 
 			}
@@ -186,9 +190,9 @@ public class MPWidget extends Application {
 	 * >Stephen C</a>
 	 * 
 	 * @param host
-	 *            host name
+	 *             host name
 	 * @param port
-	 *            Port of the service
+	 *             Port of the service
 	 * @return true, if connection to host and port can be established, false,
 	 *         if not
 	 */
@@ -238,15 +242,18 @@ public class MPWidget extends Application {
 
 	private void showConfigurationDialog(Stage stage) throws IOException {
 		// Load View
-		URL url = new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog_css.fxml").toURI().toURL();
+		URL url = new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog_css.fxml")
+				.toURI().toURL();
 		logger.debug("Binding FXML at URL: " + url);
 		FXMLLoader loader = new FXMLLoader(url);
 		GridPane gridPane = (GridPane) loader.load();
 		SetConfigurationViewController controller = loader.getController();
 		controller.setMainApplication(this);
 		Scene scene = new Scene(gridPane);
-		scene.getStylesheets().add(new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog.css").toURI()
-				.toURL().toExternalForm());
+		scene.getStylesheets()
+				.add(new File("config" + File.separator + "SetConfigurationView" + File.separator + "AlertDialog.css")
+						.toURI()
+						.toURL().toExternalForm());
 		stage.setScene(scene);
 		stage.setTitle("MPWidget - Keep recordings under your control");
 		// Show View

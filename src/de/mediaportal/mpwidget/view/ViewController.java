@@ -24,20 +24,15 @@ import de.mediaportal.mpwidget.model.Schedule;
 import de.mediaportal.mpwidget.persistence.Config;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.util.Callback;
 
 public class ViewController {
 	protected Logger logger = null;
@@ -92,9 +87,9 @@ public class ViewController {
 	// fx:id="listViewPane"
 	private ScrollPane listViewPane;
 
-	private Config config = null;
-
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+
+	private Config config;
 
 	@FXML
 	// This method is called by the FXMLLoader when initialization is complete
@@ -108,92 +103,59 @@ public class ViewController {
 		assert tcEpisode != null : "fx:id=\"tcEpisode\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert tcChannel != null : "fx:id=\"tcChannel\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 		assert listView != null : "fx:id=\"listView\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
-		assert listViewPane != null : "fx:id=\"listViewPane\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
+		assert listViewPane != null
+				: "fx:id=\"listViewPane\" was not injected: check your FXML file 'MPWidgetView.fxml'.";
 
 		logger.debug("All FXML items successfully injected. Binding Columns of tableView");
 		// Bind Colums to objects
-		tcStart.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getStartTime());
-			}
-		});
+		tcStart.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getStartTime()));
+		tcEnd.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getEndTime()));
 
-		tcEnd.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getEndTime());
-			}
-		});
+		tcTitle.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getProgramName()));
 
-		tcTitle.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getProgramName());
-			}
-		});
+		tcChannel.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getChannelName()));
 
-		tcChannel.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getChannelName());
-			}
-		});
+		tcEpisode.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getEpisodeName()));
 
-		tcEpisode.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(p.getValue().getEpisodeName());
-			}
-		});
+		tcNumber.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(
+				p.getValue().getSeriesNum() != null && !"".equalsIgnoreCase(p.getValue().getSeriesNum())
+						? p.getValue().getSeriesNum() + "x" + p.getValue().getEpisodeNum()
+						: ""));
 
-		tcNumber.setCellValueFactory(new Callback<CellDataFeatures<Schedule, String>, ObservableValue<String>>() {
-			public ObservableValue<String> call(CellDataFeatures<Schedule, String> p) {
-				return new ReadOnlyObjectWrapper<String>(
-						p.getValue().getSeriesNum() != null && !"".equalsIgnoreCase(p.getValue().getSeriesNum())
-								? p.getValue().getSeriesNum() + "x" + p.getValue().getEpisodeNum() : "");
-			}
-		});
-
-		tableView.setRowFactory(new Callback<TableView<Schedule>, TableRow<Schedule>>() {
+		tableView.setRowFactory(tr -> new TableRow<Schedule>() {
 			@Override
-			public TableRow<Schedule> call(TableView<Schedule> tableView) {
-				final TableRow<Schedule> row = new TableRow<Schedule>() {
-					@Override
-					protected void updateItem(Schedule schedule, boolean empty) {
-						super.updateItem(schedule, empty);
-						Date startDate;
-						Date endDate;
-						try {
-							if (schedule != null) {
-								String startDateStr = schedule.getStartTime();
-								String endDateStr = schedule.getEndTime();
-								if (startDateStr != null && endDateStr != null) {
-									SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-									startDate = sdf.parse(startDateStr);
-									endDate = sdf.parse(endDateStr);
-									if (startDate.before(new Date()) && endDate.after(new Date())) {
-										if (!getStyleClass().contains("priorityHigh")) {
-											getStyleClass().add("priorityHigh");
-										}
-									} else {
-										getStyleClass().removeAll("priorityHigh");
-									}
+			protected void updateItem(Schedule schedule, boolean empty) {
+				super.updateItem(schedule, empty);
+				Date startDate;
+				Date endDate;
+				try {
+					if (schedule != null) {
+						String startDateStr = schedule.getStartTime();
+						String endDateStr = schedule.getEndTime();
+						if (startDateStr != null && endDateStr != null) {
+							SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+							startDate = sdf.parse(startDateStr);
+							endDate = sdf.parse(endDateStr);
+							if (startDate.before(new Date()) && endDate.after(new Date())) {
+								if (!getStyleClass().contains("priorityHigh")) {
+									getStyleClass().add("priorityHigh");
 								}
+							} else {
+								getStyleClass().removeAll("priorityHigh");
 							}
-						} catch (ParseException e) {
-							logger.error("Error when parsing startTime " + schedule.getStartTime() + " to Java Date");
 						}
 					}
-				};
-
-				return row;
+				} catch (ParseException e) {
+					logger.error("Error when parsing startTime " + schedule.getStartTime() + " to Java Date");
+				}
 			}
 		});
 
 		// Add double click listener to listView
-		listView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent mouseEvent) {
-				if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-					if (mouseEvent.getClickCount() == 2) {
-						sendWol(config.getProperty("mediaportaldbhost"), config.getProperty("mediaportaldbhostmac"));
-					}
+		listView.setOnMouseClicked(mouseEvent -> {
+			if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
+				if (mouseEvent.getClickCount() == 2) {
+					sendWol(config.getProperty("mediaportaldbhost"), config.getProperty("mediaportaldbhostmac"));
 				}
 			}
 		});
@@ -230,9 +192,9 @@ public class ViewController {
 	 * Send a wol package to the specified host and mac address
 	 * 
 	 * @param hostname
-	 *            host name or ip of the remote server
+	 *                   host name or ip of the remote server
 	 * @param macAddress
-	 *            mac address of the remote server
+	 *                   mac address of the remote server
 	 */
 	public void sendWol(String hostname, String macAddress) {
 
@@ -264,14 +226,15 @@ public class ViewController {
 	 * Parse mac String in a byte array
 	 * 
 	 * @param macStr
-	 *            mac address String
+	 *               mac address String
 	 * @return mac address as byte array
 	 * @throws IllegalArgumentException
-	 *             will be thrown if the mac address has a wrong syntax
+	 *                                  will be thrown if the mac address has a
+	 *                                  wrong syntax
 	 */
 	private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
 		byte[] bytes = new byte[6];
-		String[] hex = macStr.split("(\\:|\\-)");
+		String[] hex = macStr.split("(:|-)");
 		if (hex.length != 6) {
 			throw new IllegalArgumentException("Invalid MAC address.");
 		}
@@ -303,7 +266,7 @@ public class ViewController {
 
 	/**
 	 * @param config
-	 *            the config to set
+	 *               the config to set
 	 */
 	public void setConfig(Config config) {
 		this.config = config;
@@ -325,7 +288,7 @@ public class ViewController {
 
 	/**
 	 * @param mpWidget
-	 *            the mpWidget to set
+	 *                 the mpWidget to set
 	 */
 	public void setMpWidget(MPWidget mpWidget) {
 		this.mpWidget = mpWidget;

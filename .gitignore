@@ -7,5 +7,6 @@ logs
 config/settings.properties
 .classpath
 .settings
-.settings/*
 .project
+target
+dependency-reduced-pom.xml
