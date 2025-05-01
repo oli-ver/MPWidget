@@ -1,15 +1,11 @@
 
 *.class
-
-logs/log.txt
-
+logs
 *.log
-
 *.txt
-
 *.properties
 config/settings.properties
-config/settings.properties
 .classpath
- 
- .settings
+.settings
+.settings/*
+.project
