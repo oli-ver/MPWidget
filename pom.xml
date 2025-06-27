@@ -45,27 +45,27 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
-			<version>25-ea+21</version>
+			<version>25-ea+22</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
-			<version>25-ea+20</version>
+			<version>25-ea+22</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-graphics -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-graphics</artifactId>
-			<version>25-ea+21</version>
+			<version>25-ea+22</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-fxml</artifactId>
-			<version>25-ea+21</version>
+			<version>25-ea+22</version>
 		</dependency>
 
 	</dependencies>
