@@ -15,4 +15,4 @@ updates:
           - "*"
     ignore:
       - dependency-name: "*javafx*"
-        versions: ["*ea*"]
+        versions: ["(25,]"]
