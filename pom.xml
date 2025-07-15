@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.25.0</version>
+			<version>2.25.1</version>
 		</dependency>
 
 		<dependency>
@@ -45,27 +45,27 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
-			<version>24.0.1</version>
+			<version>24.0.2-ea+1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
-			<version>24.0.1</version>
+			<version>24.0.2-ea+1</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-graphics -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-graphics</artifactId>
-			<version>24.0.1</version>
+			<version>24.0.2-ea+1</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-fxml</artifactId>
-			<version>24.0.1</version>
+			<version>24.0.2-ea+1</version>
 		</dependency>
 
 	</dependencies>
